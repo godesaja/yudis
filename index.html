@@ -47,7 +47,7 @@
             align-items: center;
         }
 
-        /* Foto 2 — di belakang */
+        /* Foto 2 — di belakang, z-index 1 */
         #photo2 {
             position: absolute;
             z-index: 1;
@@ -57,16 +57,40 @@
             max-height: 100%;
             aspect-ratio: 3 / 4;
             object-fit: contain;
-            /* MURNI — tanpa efek apapun */
-            border: none;
-            outline: none;
-            box-shadow: none;
-            background: none;
-            filter: none;
-            border-radius: 0;
+            /* Border biru muda neon */
+            border: 4px solid #00FFFF;
+            /* Bayangan multi-layer untuk efek neon */
+            box-shadow: 
+                0 0 10px #00FFFF,
+                0 0 20px #00FFFF,
+                0 0 40px #00FFFF,
+                0 0 80px rgba(0, 255, 255, 0.3),
+                0 20px 60px rgba(0, 0, 0, 0.4);
+            /* Efek glow pada border */
+            outline: 2px solid rgba(0, 255, 255, 0.5);
+            outline-offset: 4px;
+            /* Border radius halus */
+            border-radius: 12px;
+            /* Background untuk area transparan */
+            background: linear-gradient(145deg, #E0F7FA 0%, #B2EBF2 50%, #80DEEA 100%);
+            /* Filter untuk efek visual tambahan */
+            filter: brightness(1.05) contrast(1.02);
+            /* Transition untuk efek hover */
+            transition: all 0.3s ease;
         }
 
-        /* Foto 1 — di depan */
+        /* Efek hover/tap pada foto 2 */
+        #photo2:hover {
+            box-shadow: 
+                0 0 15px #00FFFF,
+                0 0 30px #00FFFF,
+                0 0 60px #00FFFF,
+                0 0 100px rgba(0, 255, 255, 0.5),
+                0 25px 70px rgba(0, 0, 0, 0.5);
+            transform: scale(1.02);
+        }
+
+        /* Foto 1 — di depan, z-index 2 */
         #photo1Container {
             position: absolute;
             z-index: 2;
@@ -141,6 +165,7 @@
             min-height: 75px;
         }
     </style>
+<base target="_blank">
 <base target="_blank">
 </head>
 <body>
