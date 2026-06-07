@@ -43,56 +43,38 @@
             gap: 20px;
         }
 
-        .photo-2-container {
+        /* Base photo style - tanpa background/border untuk PNG transparan */
+        .photo-box {
             position: relative;
             width: 45%;
-            height: 55%;
-            align-self: flex-end;
-            margin-bottom: 10%;
-            z-index: 1;
-        }
-
-        .photo-2 {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: block;
-        }
-
-        .photo-1-container {
-            position: relative;
-            width: 45%;
-            height: 65%;
-            align-self: flex-start;
-            margin-top: 5%;
-            z-index: 2;
-        }
-
-        .photo-1 {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 20px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-            display: block;
-            transform-origin: center bottom;
-        }
-
-        /* Placeholder saat gambar error */
-        .img-error {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
-            display: flex !important;
-            align-items: center;
+            aspect-ratio: 4 / 3;
+            display: flex;
+            align-items: flex-end;
             justify-content: center;
-            color: white;
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
         }
 
+        .photo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* contain agar tidak terpotong, transparan terlihat */
+            display: block;
+            /* Hapus border-radius dan shadow agar PNG transparan terlihat bersih */
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15)); /* Drop shadow untuk depth tanpa mengganggu transparansi */
+        }
+
+        /* Photo 2 - Left, hanya 10% lebih rendah dari foto 1 */
+        .photo-2-container {
+            z-index: 1;
+            margin-bottom: 10%; /* Selisih 10% tinggi foto dari bawah */
+        }
+
+        /* Photo 1 - Right, lebih tinggi */
+        .photo-1-container {
+            z-index: 2;
+            margin-bottom: 20%; /* 10% lebih tinggi dari foto 2 */
+        }
+
+        /* Animation: Squash & Stretch Vertical */
         @keyframes bounceSwap {
             0% { transform: scale(1, 1); }
             30% { transform: scale(0.9, 0.6); }
@@ -105,6 +87,7 @@
             animation: bounceSwap 0.5s ease-in-out;
         }
 
+        /* Speech Bubble */
         .speech-bubble {
             position: absolute;
             top: -80px;
@@ -158,30 +141,28 @@
             50% { opacity: 1; }
         }
 
-        /* Debug info */
-        .debug-info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            color: #0f0;
+        /* Error state untuk gambar tidak ditemukan */
+        .img-error {
+            background: linear-gradient(45deg, #ff6b6b 25%, #ee5a6f 25%, #ee5a6f 50%, #ff6b6b 50%, #ff6b6b 75%, #ee5a6f 75%) !important;
+            background-size: 20px 20px !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
             padding: 10px;
             border-radius: 8px;
-            font-size: 12px;
-            font-family: monospace;
-            z-index: 100;
-            max-width: 90%;
-            display: none;
         }
 
         @media (max-height: 700px) {
-            .photo-1-container { height: 60%; }
-            .photo-2-container { height: 50%; }
             .speech-bubble { top: -70px; padding: 12px 20px; }
         }
 
         @media (max-width: 350px) {
             .photo-wrapper { gap: 15px; }
+            .photo-box { width: 48%; }
             .speech-bubble { min-width: 120px; padding: 10px 15px; }
             .bubble-text { font-size: 14px; }
         }
@@ -190,23 +171,21 @@
 <body>
 
 <div class="container" id="tapArea">
-    <!-- Debug panel - tekan lama untuk muncul -->
-    <div class="debug-info" id="debugPanel"></div>
-
     <div class="photo-wrapper">
         
-        <!-- Photo 2 (Left, Lower) -->
-        <div class="photo-2-container">
-            <img src="./foto_2.png" alt="Foto 2" class="photo-2" id="photo2">
+        <!-- Photo 2 (Left, 10% lebih rendah) -->
+        <div class="photo-box photo-2-container">
+            <img src="./foto_2.png" alt="Foto 2" id="photo2">
         </div>
 
-        <!-- Photo 1 (Right, Higher) with Speech Bubble -->
-        <div class="photo-1-container" id="photo1Container">
+        <!-- Photo 1 (Right, lebih tinggi) dengan Speech Bubble -->
+        <div class="photo-box photo-1-container" id="photo1Container">
+            <!-- Speech Bubble -->
             <div class="speech-bubble" id="speechBubble">
                 <div class="bubble-text" id="bubbleText">Halo! 👋</div>
             </div>
             
-            <img src="./foto_1a.png" alt="Foto 1a" class="photo-1" id="photo1">
+            <img src="./foto_1a.png" alt="Foto 1a" id="photo1">
         </div>
 
     </div>
@@ -215,30 +194,6 @@
 </div>
 
 <script>
-    // Debug panel
-    const debugPanel = document.getElementById('debugPanel');
-    let debugMode = false;
-
-    function log(msg) {
-        console.log(msg);
-        if (debugMode) {
-            debugPanel.innerHTML += msg + '<br>';
-            debugPanel.style.display = 'block';
-        }
-    }
-
-    // Toggle debug dengan tekan lama
-    let pressTimer;
-    const tapArea = document.getElementById('tapArea');
-    
-    tapArea.addEventListener('touchstart', function(e) {
-        if (e.touches.length > 1) {
-            debugMode = !debugMode;
-            debugPanel.style.display = debugMode ? 'block' : 'none';
-            if (debugMode) log('DEBUG MODE ON');
-        }
-    });
-
     let isPhoto1A = true;
     let textIndex = 0;
     const texts = ["Halo! 👋", "Gimana kabarmu? 😊", "Lagi ngapain nih? 🤔", "Keren banget! 🔥"];
@@ -247,20 +202,18 @@
     const photo2 = document.getElementById('photo2');
     const speechBubble = document.getElementById('speechBubble');
     const bubbleText = document.getElementById('bubbleText');
+    const tapArea = document.getElementById('tapArea');
 
-    // Handle image errors dengan jelas
+    // Handle image errors
     function handleImageError(img, namaFile) {
-        log('ERROR: ' + namaFile + ' tidak ditemukan!');
+        console.error('ERROR: ' + namaFile + ' tidak ditemukan!');
         img.classList.add('img-error');
-        img.alt = 'ERROR: ' + namaFile + '\nTidak ditemukan';
+        img.style.objectFit = 'contain';
+        img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="75"><rect fill="%23ff6b6b" width="100" height="75"/><text fill="white" x="50" y="40" text-anchor="middle" font-size="10">ERROR:'+namaFile+'</text></svg>';
     }
 
     photo1.onerror = function() { handleImageError(this, 'foto_1a.png'); };
     photo2.onerror = function() { handleImageError(this, 'foto_2.png'); };
-
-    // Cek apakah gambar sudah load
-    photo1.onload = function() { log('OK: foto_1a.png loaded'); };
-    photo2.onload = function() { log('OK: foto_2.png loaded'); };
 
     function animateElement(element) {
         element.classList.remove('animating');
@@ -276,11 +229,8 @@
         
         setTimeout(() => {
             const newSrc = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
-            log('Switching to: ' + newSrc);
             photo1.src = newSrc;
-            photo1.onerror = function() { 
-                handleImageError(this, isPhoto1A ? 'foto_1a.png' : 'foto_1b.png'); 
-            };
+            photo1.onerror = function() { handleImageError(this, isPhoto1A ? 'foto_1a.png' : 'foto_1b.png'); };
         }, 150);
         
         animateElement(speechBubble);
@@ -299,10 +249,6 @@
     }, false);
 
     document.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
-
-    // Log initial state
-    log('Current path: ' + window.location.href);
-    log('Checking images...');
 </script>
 
 </body>
