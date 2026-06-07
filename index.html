@@ -9,246 +9,219 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+        }
+
+        html, body {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            -webkit-overflow-scrolling: none;
+            overscroll-behavior: none;
         }
 
         body {
-            overflow: hidden;
             background: linear-gradient(135deg, #87CEEB 0%, #B0E0E6 50%, #E0F6FF 100%);
-            height: 100vh;
-            width: 100vw;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .container {
+        #tapArea {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container foto — layering */
+        .scene {
             position: relative;
             width: 100%;
             height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        .photo-wrapper {
-            position: relative;
+        /* Foto 2 — di belakang */
+        #photo2 {
+            position: absolute;
+            z-index: 1;
             width: 100%;
-            max-width: 400px;
-            height: 80vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 20px;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: 3 / 4;
+            object-fit: contain;
+            /* MURNI — tanpa efek apapun */
+            border: none;
+            outline: none;
+            box-shadow: none;
+            background: none;
+            filter: none;
+            border-radius: 0;
         }
 
-        /* Base photo style - tanpa background/border untuk PNG transparan */
-        .photo-box {
-            position: relative;
-            width: 45%;
-            aspect-ratio: 4 / 3;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
+        /* Foto 1 — di depan */
+        #photo1Container {
+            position: absolute;
+            z-index: 2;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: 3 / 4;
         }
 
-        .photo-box img {
+        #photo1 {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* contain agar tidak terpotong, transparan terlihat */
+            aspect-ratio: 3 / 4;
+            object-fit: contain;
+            /* MURNI — tanpa efek apapun */
+            border: none;
+            outline: none;
+            box-shadow: none;
+            background: none;
+            filter: none;
+            border-radius: 0;
             display: block;
-            /* Hapus border-radius dan shadow agar PNG transparan terlihat bersih */
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15)); /* Drop shadow untuk depth tanpa mengganggu transparansi */
-        }
-
-        /* Photo 2 - Left, hanya 10% lebih rendah dari foto 1 */
-        .photo-2-container {
-            z-index: 1;
-            margin-bottom: 10%; /* Selisih 10% tinggi foto dari bawah */
-        }
-
-        /* Photo 1 - Right, lebih tinggi */
-        .photo-1-container {
-            z-index: 2;
-            margin-bottom: 20%; /* 10% lebih tinggi dari foto 2 */
-        }
-
-        /* Animation: Squash & Stretch Vertical */
-        @keyframes bounceSwap {
-            0% { transform: scale(1, 1); }
-            30% { transform: scale(0.9, 0.6); }
-            50% { transform: scale(1.1, 0.9); }
-            70% { transform: scale(0.95, 0.85); }
-            100% { transform: scale(1, 1); }
-        }
-
-        .animating {
-            animation: bounceSwap 0.5s ease-in-out;
         }
 
         /* Speech Bubble */
         .speech-bubble {
             position: absolute;
-            top: -80px;
-            left: 50%;
+            top: 100px;
+            left: 70%;
             transform: translateX(-50%);
             background: white;
-            padding: 15px 25px;
-            border-radius: 25px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            min-width: 150px;
-            text-align: center;
+            padding: 12px 20px;
+            border-radius: 20px;
+            white-space: nowrap;
             z-index: 10;
-            transform-origin: center bottom;
         }
 
         .speech-bubble::after {
             content: '';
             position: absolute;
-            bottom: -15px;
+            bottom: -12px;
             left: 50%;
             transform: translateX(-50%);
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 20px solid white;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 15px solid white;
         }
 
         .bubble-text {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: #333;
-            min-height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
+        /* Hint */
         .hint {
             position: absolute;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255,255,255,0.8);
-            font-size: 14px;
-            text-align: center;
-            pointer-events: none;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        /* Error state untuk gambar tidak ditemukan */
-        .img-error {
-            background: linear-gradient(45deg, #ff6b6b 25%, #ee5a6f 25%, #ee5a6f 50%, #ff6b6b 50%, #ff6b6b 75%, #ee5a6f 75%) !important;
-            background-size: 20px 20px !important;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            color: white;
+            color: rgba(255,255,255,0.7);
             font-size: 12px;
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
+            pointer-events: none;
+            z-index: 5;
         }
 
-        @media (max-height: 700px) {
-            .speech-bubble { top: -70px; padding: 12px 20px; }
-        }
-
-        @media (max-width: 350px) {
-            .photo-wrapper { gap: 15px; }
-            .photo-box { width: 48%; }
-            .speech-bubble { min-width: 120px; padding: 10px 15px; }
-            .bubble-text { font-size: 14px; }
+        /* Error — hanya untuk debug, hapus jika tidak perlu */
+        .img-error {
+            background: rgba(255,0,0,0.1) !important;
+            min-width: 100px;
+            min-height: 75px;
         }
     </style>
+<base target="_blank">
 </head>
 <body>
 
-<div class="container" id="tapArea">
-    <div class="photo-wrapper">
-        
-        <!-- Photo 2 (Left, 10% lebih rendah) -->
-        <div class="photo-box photo-2-container">
-            <img src="./foto_2.png" alt="Foto 2" id="photo2">
-        </div>
+<div id="tapArea">
+    <div class="scene">
+        <!-- Foto 2 — di belakang, z-index 1 -->
+        <img src="./foto_2.png" alt="" id="photo2">
 
-        <!-- Photo 1 (Right, lebih tinggi) dengan Speech Bubble -->
-        <div class="photo-box photo-1-container" id="photo1Container">
-            <!-- Speech Bubble -->
+        <!-- Foto 1 — di depan, z-index 2 -->
+        <div id="photo1Container">
             <div class="speech-bubble" id="speechBubble">
-                <div class="bubble-text" id="bubbleText">Halo! 👋</div>
+                <div class="bubble-text" id="bubbleText">Halo!</div>
             </div>
-            
-            <img src="./foto_1a.png" alt="Foto 1a" id="photo1">
+            <img src="./foto_1a.png" alt="" id="photo1">
         </div>
-
     </div>
-
-    <div class="hint">Ketuk layar untuk berinteraksi</div>
+    <div class="hint">Ketuk layar</div>
 </div>
 
 <script>
+    // Lock scroll & zoom
+    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+    document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+    document.addEventListener('gestureend', function(e) { e.preventDefault(); });
+    window.addEventListener('wheel', function(e) { e.preventDefault(); }, { passive: false });
+
     let isPhoto1A = true;
     let textIndex = 0;
-    const texts = ["Halo! 👋", "Gimana kabarmu? 😊", "Lagi ngapain nih? 🤔", "Keren banget! 🔥"];
+    const texts = ["Halo!", "Gimana?", "Lagi apa?", "Keren!"];
 
     const photo1 = document.getElementById('photo1');
-    const photo2 = document.getElementById('photo2');
     const speechBubble = document.getElementById('speechBubble');
     const bubbleText = document.getElementById('bubbleText');
     const tapArea = document.getElementById('tapArea');
 
-    // Handle image errors
-    function handleImageError(img, namaFile) {
-        console.error('ERROR: ' + namaFile + ' tidak ditemukan!');
-        img.classList.add('img-error');
-        img.style.objectFit = 'contain';
-        img.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="75"><rect fill="%23ff6b6b" width="100" height="75"/><text fill="white" x="50" y="40" text-anchor="middle" font-size="10">ERROR:'+namaFile+'</text></svg>';
+    // Error handler minimal
+    photo1.onerror = function() {
+        this.classList.add('img-error');
+        this.alt = 'foto_1a.png tidak ditemukan';
+    };
+    document.getElementById('photo2').onerror = function() {
+        this.classList.add('img-error');
+        this.alt = 'foto_2.png tidak ditemukan';
+    };
+
+    function animate(el) {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = 'bounceSwap 0.5s ease-in-out';
+        setTimeout(() => { el.style.animation = ''; }, 500);
     }
 
-    photo1.onerror = function() { handleImageError(this, 'foto_1a.png'); };
-    photo2.onerror = function() { handleImageError(this, 'foto_2.png'); };
-
-    function animateElement(element) {
-        element.classList.remove('animating');
-        void element.offsetWidth;
-        element.classList.add('animating');
-        setTimeout(() => element.classList.remove('animating'), 500);
-    }
+    // Inject animasi via JS agar tidak conflict
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes bounceSwap {
+            0% { transform: scale(1, 1); }
+            30% { transform: scale(0.85, 0.55); }
+            50% { transform: scale(1.15, 0.9); }
+            70% { transform: scale(0.92, 0.82); }
+            100% { transform: scale(1, 1); }
+        }
+    `;
+    document.head.appendChild(style);
 
     function handleTap(e) {
         e.preventDefault();
         isPhoto1A = !isPhoto1A;
-        animateElement(photo1);
-        
+        animate(photo1);
         setTimeout(() => {
-            const newSrc = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
-            photo1.src = newSrc;
-            photo1.onerror = function() { handleImageError(this, isPhoto1A ? 'foto_1a.png' : 'foto_1b.png'); };
+            photo1.src = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
         }, 150);
-        
-        animateElement(speechBubble);
+        animate(speechBubble);
         textIndex = (textIndex + 1) % texts.length;
         setTimeout(() => { bubbleText.textContent = texts[textIndex]; }, 150);
     }
 
     tapArea.addEventListener('click', handleTap);
-    tapArea.addEventListener('touchstart', function(e) { e.preventDefault(); handleTap(e); }, {passive: false});
-
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(e) {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) e.preventDefault();
-        lastTouchEnd = now;
-    }, false);
-
-    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
+    tapArea.addEventListener('touchstart', function(e) { e.preventDefault(); handleTap(e); }, { passive: false });
 </script>
 
 </body>
