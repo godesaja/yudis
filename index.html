@@ -43,7 +43,6 @@
             gap: 20px;
         }
 
-        /* Photo 2 - Left, Lower position */
         .photo-2-container {
             position: relative;
             width: 45%;
@@ -59,11 +58,9 @@
             object-fit: cover;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            background: #fff;
             display: block;
         }
 
-        /* Photo 1 - Right, Higher position */
         .photo-1-container {
             position: relative;
             width: 45%;
@@ -79,35 +76,35 @@
             object-fit: cover;
             border-radius: 20px;
             box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-            background: #fff;
             display: block;
             transform-origin: center bottom;
         }
 
-        /* Animation: Squash & Stretch Vertical */
+        /* Placeholder saat gambar error */
+        .img-error {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+
         @keyframes bounceSwap {
-            0% {
-                transform: scale(1, 1);
-            }
-            30% {
-                transform: scale(0.9, 0.6);
-            }
-            50% {
-                transform: scale(1.1, 0.9);
-            }
-            70% {
-                transform: scale(0.95, 0.85);
-            }
-            100% {
-                transform: scale(1, 1);
-            }
+            0% { transform: scale(1, 1); }
+            30% { transform: scale(0.9, 0.6); }
+            50% { transform: scale(1.1, 0.9); }
+            70% { transform: scale(0.95, 0.85); }
+            100% { transform: scale(1, 1); }
         }
 
         .animating {
             animation: bounceSwap 0.5s ease-in-out;
         }
 
-        /* Speech Bubble */
         .speech-bubble {
             position: absolute;
             top: -80px;
@@ -129,8 +126,6 @@
             bottom: -15px;
             left: 50%;
             transform: translateX(-50%);
-            width: 0;
-            height: 0;
             border-left: 15px solid transparent;
             border-right: 15px solid transparent;
             border-top: 20px solid white;
@@ -146,7 +141,6 @@
             justify-content: center;
         }
 
-        /* Hint text */
         .hint {
             position: absolute;
             bottom: 30px;
@@ -164,16 +158,20 @@
             50% { opacity: 1; }
         }
 
-        /* Placeholder styling for empty images */
-        .placeholder-img {
-            background: linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%);
-            background-size: 20px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 14px;
-            text-align: center;
+        /* Debug info */
+        .debug-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: #0f0;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 100;
+            max-width: 90%;
+            display: none;
         }
 
         @media (max-height: 700px) {
@@ -192,22 +190,23 @@
 <body>
 
 <div class="container" id="tapArea">
+    <!-- Debug panel - tekan lama untuk muncul -->
+    <div class="debug-info" id="debugPanel"></div>
+
     <div class="photo-wrapper">
         
         <!-- Photo 2 (Left, Lower) -->
         <div class="photo-2-container">
-            <img src="foto_2.png" alt="Foto 2" class="photo-2 placeholder-img" id="photo2" onerror="this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'; this.style.display='flex'; this.innerHTML='Foto 2';">
+            <img src="./foto_2.png" alt="Foto 2" class="photo-2" id="photo2">
         </div>
 
         <!-- Photo 1 (Right, Higher) with Speech Bubble -->
         <div class="photo-1-container" id="photo1Container">
-            <!-- Speech Bubble -->
             <div class="speech-bubble" id="speechBubble">
                 <div class="bubble-text" id="bubbleText">Halo! 👋</div>
             </div>
             
-            <!-- Photo 1 -->
-            <img src="foto_1a.png" alt="Foto 1a" class="photo-1 placeholder-img" id="photo1" onerror="this.style.background='linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'; this.style.display='flex'; this.innerHTML='Foto 1a';">
+            <img src="./foto_1a.png" alt="Foto 1a" class="photo-1" id="photo1">
         </div>
 
     </div>
@@ -216,27 +215,58 @@
 </div>
 
 <script>
+    // Debug panel
+    const debugPanel = document.getElementById('debugPanel');
+    let debugMode = false;
+
+    function log(msg) {
+        console.log(msg);
+        if (debugMode) {
+            debugPanel.innerHTML += msg + '<br>';
+            debugPanel.style.display = 'block';
+        }
+    }
+
+    // Toggle debug dengan tekan lama
+    let pressTimer;
+    const tapArea = document.getElementById('tapArea');
+    
+    tapArea.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 1) {
+            debugMode = !debugMode;
+            debugPanel.style.display = debugMode ? 'block' : 'none';
+            if (debugMode) log('DEBUG MODE ON');
+        }
+    });
+
     let isPhoto1A = true;
     let textIndex = 0;
-    const texts = [
-        "Halo! 👋",
-        "Gimana kabarmu? 😊", 
-        "Lagi ngapain nih? 🤔",
-        "Keren banget! 🔥"
-    ];
+    const texts = ["Halo! 👋", "Gimana kabarmu? 😊", "Lagi ngapain nih? 🤔", "Keren banget! 🔥"];
 
     const photo1 = document.getElementById('photo1');
+    const photo2 = document.getElementById('photo2');
     const speechBubble = document.getElementById('speechBubble');
     const bubbleText = document.getElementById('bubbleText');
-    const tapArea = document.getElementById('tapArea');
+
+    // Handle image errors dengan jelas
+    function handleImageError(img, namaFile) {
+        log('ERROR: ' + namaFile + ' tidak ditemukan!');
+        img.classList.add('img-error');
+        img.alt = 'ERROR: ' + namaFile + '\nTidak ditemukan';
+    }
+
+    photo1.onerror = function() { handleImageError(this, 'foto_1a.png'); };
+    photo2.onerror = function() { handleImageError(this, 'foto_2.png'); };
+
+    // Cek apakah gambar sudah load
+    photo1.onload = function() { log('OK: foto_1a.png loaded'); };
+    photo2.onload = function() { log('OK: foto_2.png loaded'); };
 
     function animateElement(element) {
         element.classList.remove('animating');
         void element.offsetWidth;
         element.classList.add('animating');
-        setTimeout(() => {
-            element.classList.remove('animating');
-        }, 500);
+        setTimeout(() => element.classList.remove('animating'), 500);
     }
 
     function handleTap(e) {
@@ -245,49 +275,34 @@
         animateElement(photo1);
         
         setTimeout(() => {
-            if (isPhoto1A) {
-                photo1.src = "foto_1a.png";
-                photo1.onerror = function() {
-                    this.style.background = 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)';
-                    this.style.display = 'flex';
-                    this.innerHTML = 'Foto 1a';
-                };
-            } else {
-                photo1.src = "foto_1b.png";
-                photo1.onerror = function() {
-                    this.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
-                    this.style.display = 'flex';
-                    this.innerHTML = 'Foto 1b';
-                };
-            }
+            const newSrc = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
+            log('Switching to: ' + newSrc);
+            photo1.src = newSrc;
+            photo1.onerror = function() { 
+                handleImageError(this, isPhoto1A ? 'foto_1a.png' : 'foto_1b.png'); 
+            };
         }, 150);
         
         animateElement(speechBubble);
         textIndex = (textIndex + 1) % texts.length;
-        
-        setTimeout(() => {
-            bubbleText.textContent = texts[textIndex];
-        }, 150);
+        setTimeout(() => { bubbleText.textContent = texts[textIndex]; }, 150);
     }
 
     tapArea.addEventListener('click', handleTap);
-    tapArea.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        handleTap(e);
-    }, {passive: false});
+    tapArea.addEventListener('touchstart', function(e) { e.preventDefault(); handleTap(e); }, {passive: false});
 
     let lastTouchEnd = 0;
     document.addEventListener('touchend', function(e) {
         const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-            e.preventDefault();
-        }
+        if (now - lastTouchEnd <= 300) e.preventDefault();
         lastTouchEnd = now;
     }, false);
 
-    document.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-    }, {passive: false});
+    document.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
+
+    // Log initial state
+    log('Current path: ' + window.location.href);
+    log('Checking images...');
 </script>
 
 </body>
