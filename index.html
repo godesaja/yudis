@@ -92,6 +92,7 @@
             height: auto;
             max-width: 100%;
             max-height: 100%;
+            aspect-fit: contain;
             aspect-ratio: 3 / 4;
         }
 
@@ -109,12 +110,12 @@
             display: block;
         }
 
-        /* Speech Bubble */
+        /* Speech Bubble — absolute terhadap scene, posisi diatur via JS berdasarkan foto2 */
         .speech-bubble {
             position: absolute;
-            top: 100px;
-            left: 70%;
-            /* translateX(-50%) hanya untuk centering arrow, bukan posisi bubble */
+            /* Posisi diatur via JS berdasarkan foto2 */
+            top: 0;
+            left: 0;
             transform: translateX(-50%);
             background: white;
             padding: 12px 20px;
@@ -125,6 +126,7 @@
         }
 
         .speech-bubble.even {
+            /* Genap = center horizontal dari foto2 */
             left: 50%;
         }
 
@@ -145,7 +147,7 @@
             color: #333;
         }
 
-        /* Animasi bounce pada bubble — TIDAK mengubah translateX */
+        /* Animasi bounce pada bubble */
         @keyframes bubbleBounce {
             0% { transform: translateX(-50%) scale(1, 1); }
             30% { transform: translateX(-50%) scale(0.85, 0.55); }
@@ -207,6 +209,7 @@
     const texts = ["Halo!", "Gimana?", "Lagi apa?", "Keren!"];
 
     const photo1 = document.getElementById('photo1');
+    const photo2 = document.getElementById('photo2');
     const speechBubble = document.getElementById('speechBubble');
     const bubbleText = document.getElementById('bubbleText');
     const tapArea = document.getElementById('tapArea');
@@ -215,7 +218,7 @@
         this.classList.add('img-error');
         this.alt = 'foto_1a.png tidak ditemukan';
     };
-    document.getElementById('photo2').onerror = function() {
+    photo2.onerror = function() {
         this.classList.add('img-error');
         this.alt = 'foto_2.png tidak ditemukan';
     };
@@ -239,6 +242,37 @@
     `;
     document.head.appendChild(photoStyle);
 
+    // Fungsi untuk mengupdate posisi speech bubble berdasarkan foto2
+    function updateBubblePosition() {
+        const photo2Rect = photo2.getBoundingClientRect();
+        const sceneRect = document.querySelector('.scene').getBoundingClientRect();
+
+        // Posisi top: 100px di atas foto2 (relatif ke scene)
+        const topPos = photo2Rect.top - sceneRect.top - -30;
+
+        // Posisi left: tergantung ganjil/genap
+        let leftPos;
+        if (textIndex % 2 === 0) {
+            // Ganjil: kanan atas foto2 (70% dari lebar foto2)
+            leftPos = photo2Rect.left - sceneRect.left + (photo2Rect.width * 0.7);
+        } else {
+            // Genap: center horizontal foto2
+            leftPos = photo2Rect.left - sceneRect.left + (photo2Rect.width * 0.5);
+        }
+
+        speechBubble.style.top = topPos + 'px';
+        speechBubble.style.left = leftPos + 'px';
+    }
+
+    // Update posisi saat window resize
+    window.addEventListener('resize', updateBubblePosition);
+    // Update posisi saat foto2 load
+    photo2.addEventListener('load', updateBubblePosition);
+    // Update posisi setelah DOM ready
+    window.addEventListener('DOMContentLoaded', updateBubblePosition);
+    // Update posisi setelah semua resource load
+    window.addEventListener('load', updateBubblePosition);
+
     function handleTap(e) {
         e.preventDefault();
 
@@ -250,11 +284,8 @@
 
         textIndex = (textIndex + 1) % texts.length;
 
-        if (textIndex % 2 === 0) {
-            speechBubble.classList.remove('even');
-        } else {
-            speechBubble.classList.add('even');
-        }
+        // Update posisi bubble berdasarkan foto2
+        updateBubblePosition();
 
         bubbleText.textContent = texts[textIndex];
 
@@ -268,6 +299,9 @@
 
     tapArea.addEventListener('click', handleTap);
     tapArea.addEventListener('touchstart', function(e) { e.preventDefault(); handleTap(e); }, { passive: false });
+
+    // Initial position update
+    setTimeout(updateBubblePosition, 100);
 </script>
 
 </body>
