@@ -23,7 +23,8 @@
 
         body {
             background: url('./foto_bg.jpg') no-repeat center top;
-            background-size: 100% auto;
+            background-size: cover;
+            background-position: center top;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -58,29 +59,21 @@
             max-height: 100%;
             aspect-ratio: 3 / 4;
             object-fit: contain;
-            /* Border biru muda neon */
             border: 4px solid #00FFFF;
-            /* Bayangan multi-layer untuk efek neon */
             box-shadow: 
                 0 0 10px #00FFFF,
                 0 0 20px #00FFFF,
                 0 0 40px #00FFFF,
                 0 0 80px rgba(0, 255, 255, 0.3),
                 0 20px 60px rgba(0, 0, 0, 0.4);
-            /* Efek glow pada border */
             outline: 2px solid rgba(0, 255, 255, 0.5);
             outline-offset: 4px;
-            /* Border radius halus */
             border-radius: 12px;
-            /* Background untuk area transparan */
             background: linear-gradient(145deg, #E0F7FA 0%, #B2EBF2 50%, #80DEEA 100%);
-            /* Filter untuk efek visual tambahan */
             filter: brightness(1.05) contrast(1.02);
-            /* Transition untuk efek hover */
             transition: all 0.3s ease;
         }
 
-        /* Efek hover/tap pada foto 2 */
         #photo2:hover {
             box-shadow: 
                 0 0 15px #00FFFF,
@@ -107,7 +100,6 @@
             height: 100%;
             aspect-ratio: 3 / 4;
             object-fit: contain;
-            /* MURNI — tanpa efek apapun */
             border: none;
             outline: none;
             box-shadow: none;
@@ -122,12 +114,18 @@
             position: absolute;
             top: 100px;
             left: 70%;
+            /* translateX(-50%) hanya untuk centering arrow, bukan posisi bubble */
             transform: translateX(-50%);
             background: white;
             padding: 12px 20px;
             border-radius: 20px;
             white-space: nowrap;
             z-index: 10;
+            transition: left 0.5s ease-in-out;
+        }
+
+        .speech-bubble.even {
+            left: 50%;
         }
 
         .speech-bubble::after {
@@ -147,6 +145,19 @@
             color: #333;
         }
 
+        /* Animasi bounce pada bubble — TIDAK mengubah translateX */
+        @keyframes bubbleBounce {
+            0% { transform: translateX(-50%) scale(1, 1); }
+            30% { transform: translateX(-50%) scale(0.85, 0.55); }
+            50% { transform: translateX(-50%) scale(1.15, 0.9); }
+            70% { transform: translateX(-50%) scale(0.92, 0.82); }
+            100% { transform: translateX(-50%) scale(1, 1); }
+        }
+
+        .speech-bubble.animating {
+            animation: bubbleBounce 0.5s ease-in-out;
+        }
+
         /* Hint */
         .hint {
             position: absolute;
@@ -159,7 +170,6 @@
             z-index: 5;
         }
 
-        /* Error — hanya untuk debug, hapus jika tidak perlu */
         .img-error {
             background: rgba(255,0,0,0.1) !important;
             min-width: 100px;
@@ -167,21 +177,18 @@
         }
     </style>
 <base target="_blank">
-<base target="_blank">
-<base target="_blank">
 </head>
 <body>
 
 <div id="tapArea">
     <div class="scene">
-        <!-- Foto 2 — di belakang, z-index 1 -->
         <img src="./foto_2.png" alt="" id="photo2">
 
-        <!-- Foto 1 — di depan, z-index 2 -->
+        <div class="speech-bubble" id="speechBubble">
+            <div class="bubble-text" id="bubbleText">Halo!</div>
+        </div>
+
         <div id="photo1Container">
-            <div class="speech-bubble" id="speechBubble">
-                <div class="bubble-text" id="bubbleText">Halo!</div>
-            </div>
             <img src="./foto_1a.png" alt="" id="photo1">
         </div>
     </div>
@@ -189,7 +196,6 @@
 </div>
 
 <script>
-    // Lock scroll & zoom
     document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
     document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
@@ -205,7 +211,6 @@
     const bubbleText = document.getElementById('bubbleText');
     const tapArea = document.getElementById('tapArea');
 
-    // Error handler minimal
     photo1.onerror = function() {
         this.classList.add('img-error');
         this.alt = 'foto_1a.png tidak ditemukan';
@@ -215,17 +220,16 @@
         this.alt = 'foto_2.png tidak ditemukan';
     };
 
-    function animate(el) {
+    function animatePhoto(el) {
         el.style.animation = 'none';
         el.offsetHeight;
-        el.style.animation = 'bounceSwap 0.5s ease-in-out';
+        el.style.animation = 'photoBounce 0.5s ease-in-out';
         setTimeout(() => { el.style.animation = ''; }, 500);
     }
 
-    // Inject animasi via JS agar tidak conflict
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes bounceSwap {
+    const photoStyle = document.createElement('style');
+    photoStyle.textContent = `
+        @keyframes photoBounce {
             0% { transform: scale(1, 1); }
             30% { transform: scale(0.85, 0.55); }
             50% { transform: scale(1.15, 0.9); }
@@ -233,18 +237,33 @@
             100% { transform: scale(1, 1); }
         }
     `;
-    document.head.appendChild(style);
+    document.head.appendChild(photoStyle);
 
     function handleTap(e) {
         e.preventDefault();
+
         isPhoto1A = !isPhoto1A;
-        animate(photo1);
+        animatePhoto(photo1);
         setTimeout(() => {
             photo1.src = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
         }, 150);
-        animate(speechBubble);
+
         textIndex = (textIndex + 1) % texts.length;
-        setTimeout(() => { bubbleText.textContent = texts[textIndex]; }, 150);
+
+        if (textIndex % 2 === 0) {
+            speechBubble.classList.remove('even');
+        } else {
+            speechBubble.classList.add('even');
+        }
+
+        bubbleText.textContent = texts[textIndex];
+
+        speechBubble.classList.remove('animating');
+        void speechBubble.offsetWidth;
+        speechBubble.classList.add('animating');
+        setTimeout(() => {
+            speechBubble.classList.remove('animating');
+        }, 500);
     }
 
     tapArea.addEventListener('click', handleTap);
