@@ -39,7 +39,6 @@
             align-items: center;
         }
 
-        /* Container foto — layering */
         .scene {
             position: relative;
             width: 100%;
@@ -49,7 +48,6 @@
             align-items: center;
         }
 
-        /* Foto 2 — di belakang, z-index 1 */
         #photo2 {
             position: absolute;
             z-index: 1;
@@ -69,7 +67,7 @@
             outline: 2px solid rgba(0, 255, 255, 0.5);
             outline-offset: 4px;
             border-radius: 12px;
-            background: linear-gradient(145deg, #E0F7FA 0%, #B2EBF2 50%, #80DEEA 100%);
+            background: linear-gradient(145deg, #E0FFFF 0%, #B2FFFF 50%, #80FFFF 100%);
             filter: brightness(1.05) contrast(1.02);
             transition: all 0.3s ease;
         }
@@ -84,7 +82,6 @@
             transform: scale(1.02);
         }
 
-        /* Foto 1 — di depan, z-index 2 */
         #photo1Container {
             position: absolute;
             z-index: 2;
@@ -92,7 +89,7 @@
             height: auto;
             max-width: 100%;
             max-height: 100%;
-            aspect-fit: contain;
+            object-fit: contain;
             aspect-ratio: 3 / 4;
         }
 
@@ -110,10 +107,8 @@
             display: block;
         }
 
-        /* Speech Bubble — absolute terhadap scene, posisi diatur via JS berdasarkan foto2 */
         .speech-bubble {
             position: absolute;
-            /* Posisi diatur via JS berdasarkan foto2 */
             top: 0;
             left: 0;
             transform: translateX(-50%);
@@ -126,7 +121,6 @@
         }
 
         .speech-bubble.even {
-            /* Genap = center horizontal dari foto2 */
             left: 50%;
         }
 
@@ -147,7 +141,6 @@
             color: #333;
         }
 
-        /* Animasi bounce pada bubble */
         @keyframes bubbleBounce {
             0% { transform: translateX(-50%) scale(1, 1); }
             30% { transform: translateX(-50%) scale(0.85, 0.55); }
@@ -160,7 +153,6 @@
             animation: bubbleBounce 0.5s ease-in-out;
         }
 
-        /* Hint */
         .hint {
             position: absolute;
             bottom: 20px;
@@ -197,7 +189,11 @@
     <div class="hint">Ketuk layar</div>
 </div>
 
+<audio id="bgMusic" src="./music.mp3" loop preload="auto"></audio>
+<audio id="tapSound" src="./sound.mp3" preload="auto"></audio>
+
 <script>
+    // Prevent scrolling and zooming immediately
     document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
     document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
     document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
@@ -214,6 +210,40 @@
     const bubbleText = document.getElementById('bubbleText');
     const tapArea = document.getElementById('tapArea');
 
+    const bgMusic = document.getElementById('bgMusic');
+    const tapSound = document.getElementById('tapSound');
+
+    let audioStarted = false;
+
+    // Function to start background music
+    function startAudio() {
+        if (audioStarted) return;
+        audioStarted = true;
+
+        // Set volume and attempt to play
+        bgMusic.volume = 0.5;
+
+        // Try to play and catch any errors
+        const playPromise = bgMusic.play();
+
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.log('Audio play failed:', error);
+                // If autoplay is blocked, we need user interaction
+                audioStarted = false;
+            });
+        }
+    }
+
+    // Function to play tap sound
+    function playTapSound() {
+        tapSound.currentTime = 0;
+        tapSound.play().catch(function() {
+            // Silently fail if audio not ready
+        });
+    }
+
+    // Error handling for images
     photo1.onerror = function() {
         this.classList.add('img-error');
         this.alt = 'foto_1a.png tidak ditemukan';
@@ -223,6 +253,7 @@
         this.alt = 'foto_2.png tidak ditemukan';
     };
 
+    // Photo bounce animation
     function animatePhoto(el) {
         el.style.animation = 'none';
         el.offsetHeight;
@@ -242,53 +273,50 @@
     `;
     document.head.appendChild(photoStyle);
 
-    // Fungsi untuk mengupdate posisi speech bubble berdasarkan foto2
+    // Update speech bubble position
     function updateBubblePosition() {
         const photo2Rect = photo2.getBoundingClientRect();
         const sceneRect = document.querySelector('.scene').getBoundingClientRect();
-
-        // Posisi top: 100px di atas foto2 (relatif ke scene)
         const topPos = photo2Rect.top - sceneRect.top - -30;
-
-        // Posisi left: tergantung ganjil/genap
         let leftPos;
         if (textIndex % 2 === 0) {
-            // Ganjil: kanan atas foto2 (70% dari lebar foto2)
             leftPos = photo2Rect.left - sceneRect.left + (photo2Rect.width * 0.7);
         } else {
-            // Genap: center horizontal foto2
             leftPos = photo2Rect.left - sceneRect.left + (photo2Rect.width * 0.5);
         }
-
         speechBubble.style.top = topPos + 'px';
         speechBubble.style.left = leftPos + 'px';
     }
 
-    // Update posisi saat window resize
     window.addEventListener('resize', updateBubblePosition);
-    // Update posisi saat foto2 load
     photo2.addEventListener('load', updateBubblePosition);
-    // Update posisi setelah DOM ready
     window.addEventListener('DOMContentLoaded', updateBubblePosition);
-    // Update posisi setelah semua resource load
     window.addEventListener('load', updateBubblePosition);
 
+    // Main tap handler
     function handleTap(e) {
         e.preventDefault();
+        e.stopPropagation();
 
+        // Start audio on first tap
+        startAudio();
+
+        // Play tap sound
+        playTapSound();
+
+        // Switch photo
         isPhoto1A = !isPhoto1A;
         animatePhoto(photo1);
         setTimeout(() => {
             photo1.src = isPhoto1A ? './foto_1a.png' : './foto_1b.png';
         }, 150);
 
+        // Update text
         textIndex = (textIndex + 1) % texts.length;
-
-        // Update posisi bubble berdasarkan foto2
         updateBubblePosition();
-
         bubbleText.textContent = texts[textIndex];
 
+        // Animate bubble
         speechBubble.classList.remove('animating');
         void speechBubble.offsetWidth;
         speechBubble.classList.add('animating');
@@ -297,10 +325,21 @@
         }, 500);
     }
 
-    tapArea.addEventListener('click', handleTap);
-    tapArea.addEventListener('touchstart', function(e) { e.preventDefault(); handleTap(e); }, { passive: false });
+    // Attach event listeners directly to document body for maximum compatibility
+    document.body.addEventListener('click', handleTap);
+    document.body.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleTap(e);
+    }, { passive: false });
 
-    // Initial position update
+    // Also keep tapArea listeners as fallback
+    tapArea.addEventListener('click', handleTap);
+    tapArea.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleTap(e);
+    }, { passive: false });
+
+    // Initial bubble position
     setTimeout(updateBubblePosition, 100);
 </script>
 
